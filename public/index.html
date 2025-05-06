@@ -159,14 +159,22 @@
                         body: JSON.stringify(newProduct)
                     });
 
-                    const result = await response.json();
+                    let result = null;
+                    const text = await response.text(); // Get raw text first
+
+                    try {
+                        result = text ? JSON.parse(text) : {};  // Parse only if not empty
+                    } catch (jsonError) {
+                        console.error('Failed to parse JSON:', jsonError);
+                    }
 
                     if (response.ok) {
-                        addProductMessage.textContent = `Product created successfully! Product ID: ${result.productId}`;
+                        addProductMessage.textContent = `Product created successfully! Product ID: ${result.productId || '[unknown]'}`;
                         addProductForm.reset(); // Clear the form
                         fetchProducts(); // Refresh the product list
                     } else {
-                        addProductMessage.textContent = `Error creating product: ${result.error || 'Something went wrong'}`;
+                        const errorMsg = result?.error || `Something went wrong (status: ${response.status})`;
+                        addProductMessage.textContent = `Error creating product: ${errorMsg}`;
                         console.error('Error creating product:', result);
                     }
                 } catch (error) {
