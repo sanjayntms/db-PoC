@@ -6,7 +6,7 @@ require_once('db.php'); // Include the database connection file
 function getProducts() {
     $conn = getConnection();
     if (!$conn) {
-        return false; //getConnection() already handles error
+        return false; // getConnection() already handles error
     }
 
     $sql = "SELECT ProductID, Name, ListPrice FROM SalesLT.Product";
@@ -29,14 +29,14 @@ function getProducts() {
 
 function getProductById($productId) {
     $conn = getConnection();
-     if (!$conn) {
-        return false; //getConnection() already handles error
+    if (!$conn) {
+        return false; // getConnection() already handles error
     }
 
     $sql = "SELECT ProductID, Name, ListPrice FROM SalesLT.Product WHERE ProductID = ?";
     $params = array($productId);
     $stmt = sqlsrv_prepare($conn, $sql, $params);
-     if ($stmt === false) {
+    if ($stmt === false) {
         log_error("getProductById prepare failed", sqlsrv_errors());
         sqlsrv_close($conn);
         return false;
@@ -54,24 +54,30 @@ function getProductById($productId) {
     return $product;
 }
 
-
-
 function createProduct($productData) {
     $conn = getConnection();
-     if (!$conn) {
-        return false; //getConnection() already handles error
+    if (!$conn) {
+        return false; // getConnection() already handles error
     }
 
-    $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, ListPrice, SellStartDate, StandardCost)
-            VALUES (?, ?, ?, ?, ?)";
+    // Generate new ProductID manually
+    $newProductId = generateNewProductId($conn);
+    if ($newProductId === false) {
+        log_error("Failed to generate new ProductID", sqlsrv_errors());
+        sqlsrv_close($conn);
+        return false;
+    }
 
-    //handle nulls
+    $sql = "INSERT INTO SalesLT.Product (ProductID, Name, ProductNumber, ListPrice, SellStartDate, StandardCost)
+            VALUES (?, ?, ?, ?, ?, ?)";
+
+    // Handle nulls/defaults
     $productNumber = $productData['productNumber'] ?? null;
     $standardCost = $productData['standardCost'] ?? 0;
     $sellStartDate = $productData['sellStartDate'] ?? date('Y-m-d H:i:s');
 
-
     $params = array(
+        $newProductId,
         $productData['name'],
         $productNumber,
         $productData['listPrice'],
@@ -79,9 +85,8 @@ function createProduct($productData) {
         $standardCost
     );
 
-
     $stmt = sqlsrv_prepare($conn, $sql, $params);
-     if ($stmt === false) {
+    if ($stmt === false) {
         log_error("createProduct prepare failed", sqlsrv_errors());
         sqlsrv_close($conn);
         return false;
@@ -94,50 +99,42 @@ function createProduct($productData) {
     }
 
     $rowsAffected = sqlsrv_rows_affected($stmt);
-    if ($rowsAffected === false) {
-        log_error("createProduct rowsAffected failed", sqlsrv_errors());
-        sqlsrv_close($conn);
-        return false;
-    }
-
-
-    $lastId = get_last_identity($conn); //User defined function
-    if ($lastId === false){
-         log_error("createProduct lastId failed", sqlsrv_errors());
+    if ($rowsAffected === false || $rowsAffected < 1) {
+        log_error("createProduct rowsAffected failed or no rows inserted", sqlsrv_errors());
         sqlsrv_close($conn);
         return false;
     }
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-    return $lastId;
+    return $newProductId;
 }
 
+// Generate new ProductID (MAX(ProductID) + 1)
+function generateNewProductId($conn) {
+    $sql = "SELECT MAX(ProductID) AS MaxID FROM SalesLT.Product";
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        log_error("generateNewProductId query failed", sqlsrv_errors());
+        return false;
+    }
 
+    $maxId = 0; // fallback if no rows yet
+    if (sqlsrv_fetch($stmt) === true) {
+        $maxId = sqlsrv_get_field($stmt, 0);
+        if ($maxId === null) {
+            $maxId = 0; // handle null result
+        }
+    }
 
-//User-defined function to get last inserted ID.
-function get_last_identity($conn){
-     $sql = "SELECT SCOPE_IDENTITY() AS LastID";  //SCOPE_IDENTITY() is the correct function.
-     $stmt = sqlsrv_query($conn, $sql);
-     if ($stmt === false) {
-          return false;
-     }
-
-     if (sqlsrv_fetch($stmt) === true) {
-        $lastId = sqlsrv_get_field($stmt, 0);  // 0 is the index of the first field.
-     }
-     else{
-        $lastId = false;
-     }
-
-     sqlsrv_free_stmt($stmt);
-     return $lastId;
+    sqlsrv_free_stmt($stmt);
+    return $maxId + 1;
 }
 
 function log_error($message, $errors) {
     // Improved error logging
     error_log($message . ":\n" . print_r($errors, true) . "\n", 0);
-    // Consider logging to a file or database instead of the error log.
+    // You can enhance this to log into a custom file or database if needed.
 }
 
 ?>
