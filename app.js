@@ -1,57 +1,128 @@
-// app.js
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
-require('dotenv').config();
-const productModel = require('./models/product');
+// models/product.js
+const { getConnection, Request, TYPES } = require('../db');
 
-app.use(express.json()); // Middleware to parse JSON request bodies
-app.use(express.static('public'));
+// Get all products
+const getProducts = async () => {
+    const connection = getConnection();
+    return new Promise((resolve, reject) => {
+        connection.on('connect', (err) => {
+            if (err) {
+                console.error('Connection error:', err);
+                reject(err);
+            } else {
+                const products = [];
+                const request = new Request("SELECT ProductID, Name, ListPrice FROM SalesLT.Product", (err, rowCount) => {
+                    if (err) {
+                        console.error('Query error:', err);
+                        connection.close();
+                        reject(err);
+                    } else {
+                        console.log(`${rowCount} row(s) returned`);
+                        connection.close();
+                        resolve(products);
+                    }
+                });
 
-// GET all products
-app.get('/api/products', async (req, res) => {
-    try {
-        const products = await productModel.getProducts();
-        res.json(products);
-    } catch (error) {
-        console.error('Error fetching products:', error);
-        res.status(500).json({ error: 'Failed to retrieve products' });
-    }
-});
+                request.on('row', (columns) => {
+                    const product = {};
+                    columns.forEach((column) => {
+                        product[column.metadata.colName] = column.value;
+                    });
+                    products.push(product);
+                });
 
-// GET product by ID
-app.get('/api/products/:id', async (req, res) => {
-    const productId = req.params.id;
-    try {
-        const product = await productModel.getProductById(productId);
-        if (product) {
-            res.json(product);
-        } else {
-            res.status(404).json({ error: `Product with ID ${productId} not found` });
-        }
-    } catch (error) {
-        console.error(`Error fetching product with ID ${productId}:`, error);
-        res.status(500).json({ error: 'Failed to retrieve product' });
-    }
-});
+                connection.execSql(request);
+            }
+        });
 
-// POST - Create a new product
-app.post('/api/products', async (req, res) => {
-    console.log('Received POST request to /api/products');
-    console.log('Request body:', req.body);
-    try {
-        const newProductId = await productModel.createProduct(req.body);
-        res.status(201).json({ message: 'Product created successfully', productId: newProductId });
-    } catch (error) {
-        console.error('Error creating product:', error);
-        res.status(500).json({ error: 'Failed to create product' });
-    }
-});
+        connection.connect();
+    });
+};
 
-app.get('/', (req, res) => {
-    res.send('Welcome to the AdventureWorks API!');
-});
+// Get product by ID
+const getProductById = async (productId) => {
+    const connection = getConnection();
+    return new Promise((resolve, reject) => {
+        connection.on('connect', (err) => {
+            if (err) {
+                console.error('Connection error:', err);
+                reject(err);
+            } else {
+                let product = null;
+                const request = new Request("SELECT ProductID, Name, ListPrice FROM SalesLT.Product WHERE ProductID = @productId", (err, rowCount) => {
+                    if (err) {
+                        console.error('Query error:', err);
+                        connection.close();
+                        reject(err);
+                    } else {
+                        console.log(`${rowCount} row(s) returned for product ID ${productId}`);
+                        connection.close();
+                        resolve(product);
+                    }
+                });
 
-app.listen(port, () => {
-    console.log(`REST API server listening on port ${port}`);
-});
+                request.addParameter('productId', TYPES.Int, parseInt(productId));
+
+                request.on('row', (columns) => {
+                    product = {};
+                    columns.forEach((column) => {
+                        product[column.metadata.colName] = column.value;
+                    });
+                });
+
+                connection.execSql(request);
+            }
+        });
+
+        connection.connect();
+    });
+};
+
+// Create a new product
+const createProduct = async (productData) => {
+    const connection = getConnection();
+    return new Promise((resolve, reject) => {
+        connection.on('connect', (err) => {
+            if (err) {
+                console.error('Connection error:', err);
+                reject(err);
+            } else {
+                const request = new Request(
+                    `INSERT INTO SalesLT.Product 
+                    (Name, ProductNumber, StandardCost, ListPrice, SellStartDate, ProductCategoryID, ProductModelID, rowguid, ModifiedDate)
+                    OUTPUT INSERTED.ProductID
+                    VALUES 
+                    (@Name, @ProductNumber, @StandardCost, @ListPrice, @SellStartDate, @ProductCategoryID, @ProductModelID, NEWID(), GETDATE())`,
+                    (err, rowCount, rows) => {
+                        if (err) {
+                            console.error('Error creating product:', err);
+                            connection.close();
+                            reject(err);
+                        } else {
+                            const newProductId = rows[0][0].value;
+                            console.log(`${rowCount} row(s) inserted, ProductID: ${newProductId}`);
+                            connection.close();
+                            resolve(newProductId);
+                        }
+                    }
+                );
+
+                // Required fields
+                request.addParameter('Name', TYPES.NVarChar, productData.Name);
+                request.addParameter('ProductNumber', TYPES.NVarChar, productData.ProductNumber || `PROD-${Date.now()}`);
+                request.addParameter('StandardCost', TYPES.Money, productData.StandardCost || 0);
+                request.addParameter('ListPrice', TYPES.Money, productData.ListPrice);
+                request.addParameter('SellStartDate', TYPES.DateTime2, productData.SellStartDate || new Date());
+
+                // Required foreign keys (set defaults if needed)
+                request.addParameter('ProductCategoryID', TYPES.Int, productData.ProductCategoryID || 1);
+                request.addParameter('ProductModelID', TYPES.Int, productData.ProductModelID || 1);
+
+                connection.execSql(request);
+            }
+        });
+        connection.connect();
+    });
+};
+
+module.exports = { getProducts, getProductById, createProduct };
