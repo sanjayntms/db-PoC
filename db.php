@@ -8,13 +8,14 @@ function getConnection() {
     $password = "123#ntms123#"; // Replace with your SQL Server password
     $port = 1433;
 
+  // Connection string using SQLSRV driver (for SQL Server)
     $connectionInfo = array(
         "Database" => $databaseName,
         "Uid" => $username,
         "PWD" => $password
     );
-     if ($port) {
-        $connectionInfo["Port"] = $port;
+    if ($port) {
+        $serverName .= "," . $port; // Append port to server name
     }
 
 
@@ -31,5 +32,3 @@ function getConnection() {
     return $conn;
 }
 ?>
-
-
