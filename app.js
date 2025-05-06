@@ -1,78 +1,42 @@
-const { getConnection, Request, TYPES } = require('../db');
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+require('dotenv').config(); // Load environment variables
+const productModel = require('./models/product');
 
-const getProducts = async () => {
-    const connection = getConnection();
-    return new Promise((resolve, reject) => {
-        connection.on('connect', (err) => {
-            if (err) {
-                console.error('Connection error:', err);
-                reject(err);
-            } else {
-                const products = [];
-                const request = new Request("SELECT ProductID, Name, ListPrice FROM SalesLT.Product", (err, rowCount) => {
-                    if (err) {
-                        console.error('Query error:', err);
-                        connection.close();
-                        reject(err);
-                    } else {
-                        console.log(`${rowCount} row(s) returned`);
-                        connection.close();
-                        resolve(products);
-                    }
-                });
+app.use(express.json());
+app.use(express.static('public')); // Serve static files from the 'public' directory
 
-                request.on('row', (columns) => {
-                    const product = {};
-                    columns.forEach((column) => {
-                        product[column.metadata.colName] = column.value;
-                    });
-                    products.push(product);
-                });
 
-                connection.execSql(request);
-            }
-        });
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await productModel.getProducts();
+        res.json(products);
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).json({ error: 'Failed to retrieve products' });
+    }
+});
 
-        connection.connect();
-    });
-};
+app.get('/api/products/:id', async (req, res) => {
+    const productId = req.params.id;
+    try {
+        const product = await productModel.getProductById(productId);
+        if (product) {
+            res.json(product);
+        } else {
+            res.status(404).json({ error: `Product with ID ${productId} not found` });
+        }
+    } catch (error) {
+        console.error(`Error fetching product with ID ${productId}:`, error);
+        res.status(500).json({ error: 'Failed to retrieve product' });
+    }
+});
 
-const getProductById = async (productId) => {
-    const connection = getConnection();
-    return new Promise((resolve, reject) => {
-        connection.on('connect', (err) => {
-            if (err) {
-                console.error('Connection error:', err);
-                reject(err);
-            } else {
-                let product = null;
-                const request = new Request("SELECT ProductID, Name, ListPrice FROM SalesLT.Product WHERE ProductID = @productId", (err, rowCount) => {
-                    if (err) {
-                        console.error('Query error:', err);
-                        connection.close();
-                        reject(err);
-                    } else {
-                        console.log(`${rowCount} row(s) returned for product ID ${productId}`);
-                        connection.close();
-                        resolve(product);
-                    }
-                });
+app.get('/', (req, res) => {
+    res.send('Welcome to the AdventureWorks API!');
+});
 
-                request.addParameter('productId', TYPES.Int, parseInt(productId));
-
-                request.on('row', (columns) => {
-                    product = {};
-                    columns.forEach((column) => {
-                        product[column.metadata.colName] = column.value;
-                    });
-                });
-
-                connection.execSql(request);
-            }
-        });
-
-        connection.connect();
-    });
-};
-
-module.exports = { getProducts, getProductById };
+app.listen(port, () => {
+    console.log(`REST API server listening on port ${port}`);
+});
