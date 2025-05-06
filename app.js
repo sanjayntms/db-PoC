@@ -37,6 +37,8 @@ app.get('/api/products/:id', async (req, res) => {
 
 // POST - Create a new product
 app.post('/api/products', async (req, res) => {
+    console.log('Received POST request to /api/products');
+    console.log('Request body:', req.body);
     try {
         const newProductId = await productModel.createProduct(req.body);
         res.status(201).json({ message: 'Product created successfully', productId: newProductId });
