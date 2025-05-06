@@ -31,11 +31,5 @@ function getConnection() {
     return $conn;
 }
 ?>
-```
 
-**To get this code working:**
 
-1.  **Replace placeholders:** In `db.php`, `api.php` and `product.php`, update the `$serverName`, `$databaseName`, `$username`, and `$password` variables with your actual SQL Server credentials.
-2.  **Create the files:** Create the `index.html`, `api.php`, `product.php`, and `db.php` files on your server.  Make sure  `index.html` is in a publicly accessible directory (like  `public_html` or a folder named  `public`) and the PHP files are outside of the web root for security.
-3.  **Deploy the files:** Upload the files to your web server.
-4.  **Test:** Access  `index.html` in your web browser.  You should be able to view the products and add new on
