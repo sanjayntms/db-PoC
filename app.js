@@ -1,12 +1,14 @@
+// app.js
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 const productModel = require('./models/product');
 
-app.use(express.json());
+app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(express.static('public'));
 
+// GET all products
 app.get('/api/products', async (req, res) => {
     try {
         const products = await productModel.getProducts();
@@ -17,6 +19,7 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
+// GET product by ID
 app.get('/api/products/:id', async (req, res) => {
     const productId = req.params.id;
     try {
@@ -29,6 +32,17 @@ app.get('/api/products/:id', async (req, res) => {
     } catch (error) {
         console.error(`Error fetching product with ID ${productId}:`, error);
         res.status(500).json({ error: 'Failed to retrieve product' });
+    }
+});
+
+// POST - Create a new product
+app.post('/api/products', async (req, res) => {
+    try {
+        const newProductId = await productModel.createProduct(req.body);
+        res.status(201).json({ message: 'Product created successfully', productId: newProductId });
+    } catch (error) {
+        console.error('Error creating product:', error);
+        res.status(500).json({ error: 'Failed to create product' });
     }
 });
 
