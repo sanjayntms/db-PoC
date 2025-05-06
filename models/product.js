@@ -1,6 +1,7 @@
 // models/product.js
 const { getConnection, Request, TYPES } = require('../db');
 
+// Get all products
 const getProducts = async () => {
     const connection = getConnection();
     return new Promise((resolve, reject) => {
@@ -38,6 +39,7 @@ const getProducts = async () => {
     });
 };
 
+// Get product by ID
 const getProductById = async (productId) => {
     const connection = getConnection();
     return new Promise((resolve, reject) => {
@@ -76,33 +78,45 @@ const getProductById = async (productId) => {
     });
 };
 
-const request = new Request(
-    `INSERT INTO SalesLT.Product 
-    (Name, ProductNumber, StandardCost, ListPrice, SellStartDate, ProductCategoryID, ProductModelID, rowguid, ModifiedDate)
-    OUTPUT INSERTED.ProductID
-    VALUES 
-    (@Name, @ProductNumber, @StandardCost, @ListPrice, @SellStartDate, @ProductCategoryID, @ProductModelID, NEWID(), GETDATE())`,
-    (err, rowCount, rows) => {
-        if (err) {
-            console.error('Error creating product:', err);
-            connection.close();
-            reject(err);
-        } else {
-            const newProductId = rows[0][0].value;
-            console.log(`${rowCount} row(s) inserted, ProductID: ${newProductId}`);
-            connection.close();
-            resolve(newProductId);
-        }
-    }
-);
+// Create a new product
+const createProduct = async (productData) => {
+    const connection = getConnection();
+    return new Promise((resolve, reject) => {
+        connection.on('connect', (err) => {
+            if (err) {
+                console.error('Connection error:', err);
+                reject(err);
+            } else {
+                const request = new Request(
+                    `INSERT INTO SalesLT.Product 
+                    (Name, ProductNumber, StandardCost, ListPrice, SellStartDate, ProductCategoryID, ProductModelID, rowguid, ModifiedDate)
+                    OUTPUT INSERTED.ProductID
+                    VALUES 
+                    (@Name, @ProductNumber, @StandardCost, @ListPrice, @SellStartDate, @ProductCategoryID, @ProductModelID, NEWID(), GETDATE())`,
+                    (err, rowCount, rows) => {
+                        if (err) {
+                            console.error('Error creating product:', err);
+                            connection.close();
+                            reject(err);
+                        } else {
+                            const newProductId = rows[0][0].value;
+                            console.log(`${rowCount} row(s) inserted, ProductID: ${newProductId}`);
+                            connection.close();
+                            resolve(newProductId);
+                        }
+                    }
+                );
 
-request.addParameter('Name', TYPES.NVarChar, productData.Name);
-request.addParameter('ProductNumber', TYPES.NVarChar, productData.ProductNumber || null);
-request.addParameter('StandardCost', TYPES.Money, productData.StandardCost || 0);
-request.addParameter('ListPrice', TYPES.Money, productData.ListPrice);
-request.addParameter('SellStartDate', TYPES.DateTime2, productData.SellStartDate || new Date());
-request.addParameter('ProductCategoryID', TYPES.Int, productData.ProductCategoryID || 1); // Default/fake value
-request.addParameter('ProductModelID', TYPES.Int, productData.ProductModelID || 1);       // Default/fake value
+                // Required fields
+                request.addParameter('Name', TYPES.NVarChar, productData.Name);
+                request.addParameter('ProductNumber', TYPES.NVarChar, productData.ProductNumber || `PROD-${Date.now()}`);
+                request.addParameter('StandardCost', TYPES.Money, productData.StandardCost || 0);
+                request.addParameter('ListPrice', TYPES.Money, productData.ListPrice);
+                request.addParameter('SellStartDate', TYPES.DateTime2, productData.SellStartDate || new Date());
+
+                // Required foreign keys (set defaults if needed)
+                request.addParameter('ProductCategoryID', TYPES.Int, productData.ProductCategoryID || 1);
+                request.addParameter('ProductModelID', TYPES.Int, productData.ProductModelID || 1);
 
                 connection.execSql(request);
             }
