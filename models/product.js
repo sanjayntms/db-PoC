@@ -15,7 +15,7 @@ const getProducts = async () => {
                         connection.close();
                         reject(err);
                     } else {
-                        console.log(`${rowCount} row(s) returned");
+                        console.log(`${rowCount} row(s) returned`);
                         connection.close();
                         resolve(products);
                     }
