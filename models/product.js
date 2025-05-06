@@ -76,37 +76,33 @@ const getProductById = async (productId) => {
     });
 };
 
-const createProduct = async (productData) => {
-    const connection = getConnection();
-    return new Promise((resolve, reject) => {
-        connection.on('connect', (err) => {
-            if (err) {
-                console.error('Connection error:', err);
-                reject(err);
-            } else {
-                const request = new Request(
-                    `INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, SellStartDate)
-                     OUTPUT INSERTED.ProductID
-                     VALUES (@Name, @ProductNumber, @StandardCost, @ListPrice, @SellStartDate)`,
-                    (err, rowCount, rows) => {
-                        if (err) {
-                            console.error('Error creating product:', err);
-                            connection.close();
-                            reject(err);
-                        } else {
-                            const newProductId = rows[0][0].value;
-                            console.log(`${rowCount} row(s) inserted, ProductID: ${newProductId}`);
-                            connection.close();
-                            resolve(newProductId);
-                        }
-                    }
-                );
+const request = new Request(
+    `INSERT INTO SalesLT.Product 
+    (Name, ProductNumber, StandardCost, ListPrice, SellStartDate, ProductCategoryID, ProductModelID, rowguid, ModifiedDate)
+    OUTPUT INSERTED.ProductID
+    VALUES 
+    (@Name, @ProductNumber, @StandardCost, @ListPrice, @SellStartDate, @ProductCategoryID, @ProductModelID, NEWID(), GETDATE())`,
+    (err, rowCount, rows) => {
+        if (err) {
+            console.error('Error creating product:', err);
+            connection.close();
+            reject(err);
+        } else {
+            const newProductId = rows[0][0].value;
+            console.log(`${rowCount} row(s) inserted, ProductID: ${newProductId}`);
+            connection.close();
+            resolve(newProductId);
+        }
+    }
+);
 
-                request.addParameter('Name', TYPES.NVarChar, productData.Name);
-                request.addParameter('ProductNumber', TYPES.NVarChar, productData.ProductNumber || null); // Optional
-                request.addParameter('StandardCost', TYPES.Money, productData.StandardCost || 0);       // Optional
-                request.addParameter('ListPrice', TYPES.Money, productData.ListPrice);
-                request.addParameter('SellStartDate', TYPES.DateTime2, productData.SellStartDate || new Date()); // Default to now
+request.addParameter('Name', TYPES.NVarChar, productData.Name);
+request.addParameter('ProductNumber', TYPES.NVarChar, productData.ProductNumber || null);
+request.addParameter('StandardCost', TYPES.Money, productData.StandardCost || 0);
+request.addParameter('ListPrice', TYPES.Money, productData.ListPrice);
+request.addParameter('SellStartDate', TYPES.DateTime2, productData.SellStartDate || new Date());
+request.addParameter('ProductCategoryID', TYPES.Int, productData.ProductCategoryID || 1); // Default/fake value
+request.addParameter('ProductModelID', TYPES.Int, productData.ProductModelID || 1);       // Default/fake value
 
                 connection.execSql(request);
             }
