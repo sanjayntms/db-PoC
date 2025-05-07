@@ -13,18 +13,35 @@ if (!$conn) {
     die(print_r(sqlsrv_errors(), true));
 }
 
-// USE EXISTING SalesLT.Product TABLE
+// Seed test data if requested
+if (isset($_POST['seed'])) {
+    $standardCost = 10;
+    $productCategoryID = 1;
+    $productModelID = 1;
+
+    for ($i = 1; $i <= 1000; $i++) {
+        $name = "TestProduct$i";
+        $number = "TP$i";
+        $price = rand(50, 500);
+
+        $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+        $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if (!$stmt) {
+            die(print_r(sqlsrv_errors(), true));
+        }
+    }
+    echo "<p>Test data seeded successfully.</p>";
+}
 
 // CREATE
 if (isset($_POST['create'])) {
     $name = $_POST['name'];
     $number = $_POST['number'];
     $price = $_POST['price'];
-
-    // Provide non-null values for required fields
-    $standardCost = 0;  // or set a meaningful default
-    $productCategoryID = 1;  // existing valid category ID
-    $productModelID = 1;     // existing valid model ID
+    $standardCost = 0;
+    $productCategoryID = 1;
+    $productModelID = 1;
 
     $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
     $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
@@ -64,6 +81,11 @@ if (!$result) {
     die(print_r(sqlsrv_errors(), true));
 }
 ?>
+
+<h2>Seed Test Data</h2>
+<form method="post">
+    <button type="submit" name="seed">Seed 10 Test Products</button>
+</form>
 
 <h2>Create Product</h2>
 <form method="post">
