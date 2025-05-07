@@ -94,7 +94,7 @@ if (!$result) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NTMS database PoC Product Management</title>
+    <title>🌟 😊 NTMS database PoC Product Management</title>
     <style>
         body {
             background: linear-gradient(to right, #74ebd5, #ACB6E5);
