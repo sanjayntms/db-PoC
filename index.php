@@ -24,7 +24,7 @@ if (isset($_POST['seed'])) {
     $productCategoryID = 1;
     $productModelID = 1;
 
-    for ($i = 1; $i <= 10; $i++) {
+    for ($i = 1; $i <= 100000; $i++) {
         $uniqueSuffix = uniqid();
         $name = "TestProduct$uniqueSuffix";
         $number = "TP$uniqueSuffix";
