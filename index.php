@@ -21,7 +21,7 @@ if (isset($_POST['seed'])) {
 
     echo "<h3>Seeding Test Data...</h3>";
 
-    for ($i = 1; $i <= 1000; $i++) {
+    for ($i = 1; $i <= 10000; $i++) {
         // Add unique suffix using timestamp + random
         $uniqueSuffix = time() . rand(1000, 9999);
         $name = "TestProduct_" . $uniqueSuffix . "_$i";
@@ -91,7 +91,7 @@ if (isset($_POST['delete'])) {
 }
 
 // READ
-$sql = "SELECT TOP 100 ProductID, Name, ProductNumber, ListPrice FROM SalesLT.Product ORDER BY ProductID DESC";
+$sql = "SELECT TOP 10 ProductID, Name, ProductNumber, ListPrice FROM SalesLT.Product ORDER BY ProductID DESC";
 $result = sqlsrv_query($conn, $sql);
 if (!$result) {
     die("<pre>❌ Read failed:\n" . print_r(sqlsrv_errors(), true) . "</pre>");
@@ -100,7 +100,7 @@ if (!$result) {
 
 <h2>Seed Test Data</h2>
 <form method="post">
-    <button type="submit" name="seed" value="1">Seed 10 New Test Products</button>
+    <button type="submit" name="seed" value="1">Seed 10000 New Test Products</button>
 </form>
 
 <h2>Create Product</h2>
@@ -124,7 +124,7 @@ if (!$result) {
     <button type="submit" name="delete" value="1">Delete</button>
 </form>
 
-<h2>Latest 100 Products</h2>
+<h2>Latest 10 Products</h2>
 <table border="1" cellpadding="5" cellspacing="0">
     <tr><th>ID</th><th>Name</th><th>Number</th><th>Price</th></tr>
     <?php while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) { ?>
