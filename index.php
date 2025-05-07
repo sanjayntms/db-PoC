@@ -20,8 +20,14 @@ if (isset($_POST['create'])) {
     $name = $_POST['name'];
     $number = $_POST['number'];
     $price = $_POST['price'];
-    $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, ListPrice, SellStartDate) VALUES (?, ?, ?, GETDATE())";
-    $params = [$name, $number, $price];
+
+    // Provide non-null values for required fields
+    $standardCost = 0;  // or set a meaningful default
+    $productCategoryID = 1;  // existing valid category ID
+    $productModelID = 1;     // existing valid model ID
+
+    $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+    $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if (!$stmt) {
         die(print_r(sqlsrv_errors(), true));
