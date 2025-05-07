@@ -1,7 +1,7 @@
 <?php
 $serverName = "tcp:ntmsdb11.database.windows.net,1433";
 $connectionOptions = [
-    "Database" => "db1",
+    "Database" => "db",
     "Uid" => "sqladmin",
     "PWD" => "123#ntms123#",
     "Encrypt" => 1,
