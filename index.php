@@ -21,7 +21,7 @@ if (isset($_POST['seed'])) {
 
     echo "<h3>Seeding Test Data...</h3>";
 
-    for ($i = 1; $i <= 10000; $i++) {
+    for ($i = 1; $i <= 100000; $i++) {
         // Add unique suffix using timestamp + random
         $uniqueSuffix = time() . rand(1000, 9999);
         $name = "TestProduct_" . $uniqueSuffix . "_$i";
@@ -100,7 +100,7 @@ if (!$result) {
 
 <h2>Seed Test Data</h2>
 <form method="post">
-    <button type="submit" name="seed" value="1">Seed 10000 New Test Products</button>
+    <button type="submit" name="seed" value="1">Seed 100000 New Test Products</button>
 </form>
 
 <h2>Create Product</h2>
