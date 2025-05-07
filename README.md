@@ -4,7 +4,7 @@
 2️⃣ Under Settings → Configuration → Application settings, add the following:
 
 Name	Value
-DB_SERVER	tcp:ntmsdb11.database.windows.net,1433
-DB_NAME	db
-DB_USER	sqladmin
-DB_PASSWORD	password
+* DB_SERVER	tcp:ntmsdb11.database.windows.net,1433
+* DB_NAME	db
+* DB_USER	sqladmin
+* DB_PASSWORD	password
