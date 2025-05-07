@@ -10,7 +10,7 @@ $connectionOptions = [
 
 $conn = sqlsrv_connect($serverName, $connectionOptions);
 if (!$conn) {
-    die(print_r(sqlsrv_errors(), true));
+    die("<pre>Connection failed:\n" . print_r(sqlsrv_errors(), true) . "</pre>");
 }
 
 // Seed test data if requested
@@ -19,19 +19,26 @@ if (isset($_POST['seed'])) {
     $productCategoryID = 1;
     $productModelID = 1;
 
+    echo "<h3>Seeding Test Data...</h3>";
+
     for ($i = 1; $i <= 10; $i++) {
-        $name = "NTMSProduct$i";
+        $name = "TestProduct$i";
         $number = "TP$i";
         $price = rand(50, 500);
 
-        $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+        $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) 
+                VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
         $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
         $stmt = sqlsrv_query($conn, $sql, $params);
+
         if (!$stmt) {
-            die(print_r(sqlsrv_errors(), true));
+            echo "<pre>❌ Failed inserting $name:\n" . print_r(sqlsrv_errors(), true) . "</pre>";
+            die();
+        } else {
+            echo "<p>✅ Inserted $name successfully.</p>";
         }
     }
-    echo "<p>Test data seeded successfully.</p>";
+    echo "<p>🎉 Test data seeded successfully.</p>";
 }
 
 // CREATE
@@ -43,11 +50,14 @@ if (isset($_POST['create'])) {
     $productCategoryID = 1;
     $productModelID = 1;
 
-    $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+    $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) 
+            VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
     $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if (!$stmt) {
-        die(print_r(sqlsrv_errors(), true));
+        die("<pre>❌ Create failed:\n" . print_r(sqlsrv_errors(), true) . "</pre>");
+    } else {
+        echo "<p>✅ Product created successfully.</p>";
     }
 }
 
@@ -59,7 +69,9 @@ if (isset($_POST['update'])) {
     $params = [$price, $id];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if (!$stmt) {
-        die(print_r(sqlsrv_errors(), true));
+        die("<pre>❌ Update failed:\n" . print_r(sqlsrv_errors(), true) . "</pre>");
+    } else {
+        echo "<p>✅ Product updated successfully.</p>";
     }
 }
 
@@ -70,7 +82,9 @@ if (isset($_POST['delete'])) {
     $params = [$id];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if (!$stmt) {
-        die(print_r(sqlsrv_errors(), true));
+        die("<pre>❌ Delete failed:\n" . print_r(sqlsrv_errors(), true) . "</pre>");
+    } else {
+        echo "<p>✅ Product deleted successfully.</p>";
     }
 }
 
@@ -78,38 +92,38 @@ if (isset($_POST['delete'])) {
 $sql = "SELECT TOP 100 ProductID, Name, ProductNumber, ListPrice FROM SalesLT.Product ORDER BY ProductID DESC";
 $result = sqlsrv_query($conn, $sql);
 if (!$result) {
-    die(print_r(sqlsrv_errors(), true));
+    die("<pre>❌ Read failed:\n" . print_r(sqlsrv_errors(), true) . "</pre>");
 }
 ?>
 
 <h2>Seed Test Data</h2>
 <form method="post">
-    <button type="submit" name="seed">Seed 10 Test Products</button>
+    <button type="submit" name="seed" value="1">Seed 10 Test Products</button>
 </form>
 
 <h2>Create Product</h2>
 <form method="post">
     Name: <input type="text" name="name" required>
     Number: <input type="text" name="number" required>
-    Price: <input type="text" name="price" required>
-    <button type="submit" name="create">Create</button>
+    Price: <input type="number" name="price" required>
+    <button type="submit" name="create" value="1">Create</button>
 </form>
 
 <h2>Update Product Price</h2>
 <form method="post">
-    Product ID: <input type="text" name="id" required>
-    New Price: <input type="text" name="price" required>
-    <button type="submit" name="update">Update</button>
+    Product ID: <input type="number" name="id" required>
+    New Price: <input type="number" name="price" required>
+    <button type="submit" name="update" value="1">Update</button>
 </form>
 
 <h2>Delete Product</h2>
 <form method="post">
-    Product ID: <input type="text" name="id" required>
-    <button type="submit" name="delete">Delete</button>
+    Product ID: <input type="number" name="id" required>
+    <button type="submit" name="delete" value="1">Delete</button>
 </form>
 
 <h2>Latest 100 Products</h2>
-<table border="1">
+<table border="1" cellpadding="5" cellspacing="0">
     <tr><th>ID</th><th>Name</th><th>Number</th><th>Price</th></tr>
     <?php while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) { ?>
         <tr>
