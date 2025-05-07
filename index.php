@@ -20,24 +20,38 @@ if (!$conn) {
 
 // Seed test data if requested
 if (isset($_POST['seed'])) {
-    $standardCost = 10;
-    $productCategoryID = 1;
-    $productModelID = 1;
+    $numRecords = $_POST['numRecords']; // Get number of records from the form
+    if (is_numeric($numRecords) && $numRecords > 0) { // Ensure it's a valid number
+        $standardCost = 10;
+        $productCategoryID = 1;
+        $productModelID = 1;
 
-    for ($i = 1; $i <= 100000; $i++) {
-        $uniqueSuffix = uniqid();
-        $name = "TestProduct$uniqueSuffix";
-        $number = "TP$uniqueSuffix";
-        $price = rand(50, 500);
+        // Capture start time for latency
+        $startTime = microtime(true);
 
-        $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
-        $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
-        $stmt = sqlsrv_query($conn, $sql, $params);
-        if (!$stmt) {
-            die("<p style='color:red;'>Failed to insert seed data: " . print_r(sqlsrv_errors(), true) . "</p>");
+        for ($i = 1; $i <= $numRecords; $i++) {
+            $uniqueSuffix = uniqid();
+            $name = "TestProduct$uniqueSuffix";
+            $number = "TP$uniqueSuffix";
+            $price = rand(50, 500);
+
+            $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+            $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
+            $stmt = sqlsrv_query($conn, $sql, $params);
+            if (!$stmt) {
+                die("<p style='color:red;'>Failed to insert seed data: " . print_r(sqlsrv_errors(), true) . "</p>");
+            }
         }
+
+        // Capture end time for latency
+        $endTime = microtime(true);
+
+        // Calculate latency in seconds
+        $latency = $endTime - $startTime;
+        echo "<p style='color:green;'>$numRecords new test products seeded successfully in " . number_format($latency, 4) . " seconds.</p>";
+    } else {
+        echo "<p style='color:red;'>Please enter a valid number of records to seed.</p>";
     }
-    echo "<p style='color:green;'>10 new test products seeded successfully.</p>";
 }
 
 // CREATE
@@ -152,7 +166,9 @@ if (!$result) {
 
 <h2>Seed Test Data</h2>
 <form method="post">
-    <button type="submit" name="seed">Seed 10 Unique Test Products</button>
+    <label for="numRecords">Number of Records to Seed: </label>
+    <input type="number" name="numRecords" min="1" required>
+    <button type="submit" name="seed">Seed Products</button>
 </form>
 
 <h2>Create Product</h2>
