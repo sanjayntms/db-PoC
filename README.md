@@ -8,3 +8,6 @@ Name	Value
 * DB_NAME	db
 * DB_USER	sqladmin
 * DB_PASSWORD	password
+
+# 
+## Modify Seed if you want to insert huge data for testing purpose like DTU,vcore perf
