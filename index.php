@@ -19,7 +19,7 @@ if (isset($_POST['seed'])) {
     $productCategoryID = 1;
     $productModelID = 1;
 
-    for ($i = 1; $i <= 1000; $i++) {
+    for ($i = 1; $i <= 10; $i++) {
         $name = "TestProduct$i";
         $number = "TP$i";
         $price = rand(50, 500);
@@ -75,7 +75,7 @@ if (isset($_POST['delete'])) {
 }
 
 // READ
-$sql = "SELECT ProductID, Name, ProductNumber, ListPrice FROM SalesLT.Product";
+$sql = "SELECT TOP 100 ProductID, Name, ProductNumber, ListPrice FROM SalesLT.Product ORDER BY ProductID DESC";
 $result = sqlsrv_query($conn, $sql);
 if (!$result) {
     die(print_r(sqlsrv_errors(), true));
@@ -108,7 +108,7 @@ if (!$result) {
     <button type="submit" name="delete">Delete</button>
 </form>
 
-<h2>Product List</h2>
+<h2>Latest 100 Products</h2>
 <table border="1">
     <tr><th>ID</th><th>Name</th><th>Number</th><th>Price</th></tr>
     <?php while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) { ?>
