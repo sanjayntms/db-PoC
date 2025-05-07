@@ -21,7 +21,7 @@ if (isset($_POST['seed'])) {
 
     echo "<h3>Seeding Test Data...</h3>";
 
-    for ($i = 1; $i <= 10; $i++) {
+    for ($i = 1; $i <= 1000; $i++) {
         // Add unique suffix using timestamp + random
         $uniqueSuffix = time() . rand(1000, 9999);
         $name = "TestProduct_" . $uniqueSuffix . "_$i";
