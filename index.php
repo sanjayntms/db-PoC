@@ -148,7 +148,7 @@ if (!$result) {
 </head>
 <body>
 
-<h1>🌟 Product Management Portal</h1>
+<h1>🌟 NTMS database PoC Product Management Portal</h1>
 
 <h2>Seed Test Data</h2>
 <form method="post">
