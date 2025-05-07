@@ -13,36 +13,49 @@ if (!$conn) {
     die(print_r(sqlsrv_errors(), true));
 }
 
+// USE EXISTING SalesLT.Product TABLE
+
 // CREATE
 if (isset($_POST['create'])) {
     $name = $_POST['name'];
     $number = $_POST['number'];
     $price = $_POST['price'];
-    $sql = "INSERT INTO Production.Product (Name, ProductNumber, StandardCost, ListPrice, SellStartDate)
-            VALUES (?, ?, 0, ?, GETDATE())";
+    $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, ListPrice, SellStartDate) VALUES (?, ?, ?, GETDATE())";
     $params = [$name, $number, $price];
-    sqlsrv_query($conn, $sql, $params);
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if (!$stmt) {
+        die(print_r(sqlsrv_errors(), true));
+    }
 }
-
-// READ
-$sql = "SELECT ProductID, Name, ProductNumber, ListPrice FROM Production.Product";
-$result = sqlsrv_query($conn, $sql);
 
 // UPDATE
 if (isset($_POST['update'])) {
     $id = $_POST['id'];
     $price = $_POST['price'];
-    $sql = "UPDATE Production.Product SET ListPrice = ? WHERE ProductID = ?";
+    $sql = "UPDATE SalesLT.Product SET ListPrice = ? WHERE ProductID = ?";
     $params = [$price, $id];
-    sqlsrv_query($conn, $sql, $params);
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if (!$stmt) {
+        die(print_r(sqlsrv_errors(), true));
+    }
 }
 
 // DELETE
 if (isset($_POST['delete'])) {
     $id = $_POST['id'];
-    $sql = "DELETE FROM Production.Product WHERE ProductID = ?";
+    $sql = "DELETE FROM SalesLT.Product WHERE ProductID = ?";
     $params = [$id];
-    sqlsrv_query($conn, $sql, $params);
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if (!$stmt) {
+        die(print_r(sqlsrv_errors(), true));
+    }
+}
+
+// READ
+$sql = "SELECT ProductID, Name, ProductNumber, ListPrice FROM SalesLT.Product";
+$result = sqlsrv_query($conn, $sql);
+if (!$result) {
+    die(print_r(sqlsrv_errors(), true));
 }
 ?>
 
@@ -72,10 +85,10 @@ if (isset($_POST['delete'])) {
     <tr><th>ID</th><th>Name</th><th>Number</th><th>Price</th></tr>
     <?php while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) { ?>
         <tr>
-            <td><?= $row['ProductID'] ?></td>
-            <td><?= $row['Name'] ?></td>
-            <td><?= $row['ProductNumber'] ?></td>
-            <td><?= $row['ListPrice'] ?></td>
+            <td><?= htmlspecialchars($row['ProductID']) ?></td>
+            <td><?= htmlspecialchars($row['Name']) ?></td>
+            <td><?= htmlspecialchars($row['ProductNumber']) ?></td>
+            <td><?= htmlspecialchars($row['ListPrice']) ?></td>
         </tr>
     <?php } ?>
 </table>
