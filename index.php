@@ -20,7 +20,7 @@ if (isset($_POST['seed'])) {
     $productModelID = 1;
 
     for ($i = 1; $i <= 10; $i++) {
-        $name = "TestProduct$i";
+        $name = "NTMSProduct$i";
         $number = "TP$i";
         $price = rand(50, 500);
 
