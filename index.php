@@ -22,8 +22,10 @@ if (isset($_POST['seed'])) {
     echo "<h3>Seeding Test Data...</h3>";
 
     for ($i = 1; $i <= 10; $i++) {
-        $name = "TestProduct$i";
-        $number = "TP$i";
+        // Add unique suffix using timestamp + random
+        $uniqueSuffix = time() . rand(1000, 9999);
+        $name = "TestProduct_" . $uniqueSuffix . "_$i";
+        $number = "TP_" . $uniqueSuffix . "_$i";
         $price = rand(50, 500);
 
         $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) 
@@ -38,7 +40,7 @@ if (isset($_POST['seed'])) {
             echo "<p>✅ Inserted $name successfully.</p>";
         }
     }
-    echo "<p>🎉 Test data seeded successfully.</p>";
+    echo "<p>🎉 10 New test products seeded successfully.</p>";
 }
 
 // CREATE
@@ -98,7 +100,7 @@ if (!$result) {
 
 <h2>Seed Test Data</h2>
 <form method="post">
-    <button type="submit" name="seed" value="1">Seed 10 Test Products</button>
+    <button type="submit" name="seed" value="1">Seed 10 New Test Products</button>
 </form>
 
 <h2>Create Product</h2>
