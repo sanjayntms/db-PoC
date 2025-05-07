@@ -20,38 +20,31 @@ if (!$conn) {
 
 // Seed test data if requested
 if (isset($_POST['seed'])) {
-    $numRecords = $_POST['numRecords']; // Get number of records from the form
-    if (is_numeric($numRecords) && $numRecords > 0) { // Ensure it's a valid number
-        $standardCost = 10;
-        $productCategoryID = 1;
-        $productModelID = 1;
+    $numRecords = $_POST['numRecords'] ?? 10; // Default to 10 if no input
+    $standardCost = 10;
+    $productCategoryID = 1;
+    $productModelID = 1;
 
-        // Capture start time for latency
-        $startTime = microtime(true);
+    $startTime = microtime(true);
 
-        for ($i = 1; $i <= $numRecords; $i++) {
-            $uniqueSuffix = uniqid();
-            $name = "TestProduct$uniqueSuffix";
-            $number = "TP$uniqueSuffix";
-            $price = rand(50, 500);
+    for ($i = 1; $i <= $numRecords; $i++) {
+        $uniqueSuffix = uniqid();
+        $name = "TestProduct$uniqueSuffix";
+        $number = "TP$uniqueSuffix";
+        $price = rand(50, 500);
 
-            $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
-            $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
-            $stmt = sqlsrv_query($conn, $sql, $params);
-            if (!$stmt) {
-                die("<p style='color:red;'>Failed to insert seed data: " . print_r(sqlsrv_errors(), true) . "</p>");
-            }
+        $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+        $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if (!$stmt) {
+            die("<p style='color:red;'>Failed to insert seed data: " . print_r(sqlsrv_errors(), true) . "</p>");
         }
-
-        // Capture end time for latency
-        $endTime = microtime(true);
-
-        // Calculate latency in seconds
-        $latency = $endTime - $startTime;
-        echo "<p style='color:green;'>$numRecords new test products seeded successfully in " . number_format($latency, 4) . " seconds.</p>";
-    } else {
-        echo "<p style='color:red;'>Please enter a valid number of records to seed.</p>";
     }
+
+    $endTime = microtime(true);
+    $executionTime = $endTime - $startTime;
+
+    echo "<p style='color:green;'>$numRecords new test products seeded successfully. Insertion took $executionTime seconds.</p>";
 }
 
 // CREATE
@@ -158,21 +151,36 @@ if (!$result) {
         tr:nth-child(even) {
             background: #f2f2f2;
         }
+        #loadingMessage {
+            display: none;
+            color: green;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
+    <script>
+        function showLoadingMessage() {
+            document.getElementById("loadingMessage").style.display = "block";
+            document.getElementById("createForm").classList.add("hidden");
+        }
+    </script>
 </head>
 <body>
 
 <h1>🌟 NTMS database PoC Product Management Portal</h1>
 
 <h2>Seed Test Data</h2>
-<form method="post">
+<form method="post" onsubmit="showLoadingMessage()">
     <label for="numRecords">Number of Records to Seed: </label>
     <input type="number" name="numRecords" min="1" required>
     <button type="submit" name="seed">Seed Products</button>
 </form>
 
 <h2>Create Product</h2>
-<form method="post">
+<form method="post" id="createForm" onsubmit="showLoadingMessage()">
     Name: <input type="text" name="name" required>
     Number: <input type="text" name="number" required>
     Price: <input type="number" step="0.01" name="price" required>
@@ -204,6 +212,9 @@ if (!$result) {
         </tr>
     <?php } ?>
 </table>
+
+<!-- Loading message to show during creation -->
+<div id="loadingMessage">Creating... Please wait while the records are being inserted.</div>
 
 </body>
 </html>
