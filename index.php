@@ -18,9 +18,18 @@ if (!$conn) {
     die("<p style='color:red;'>Database connection failed: " . print_r(sqlsrv_errors(), true) . "</p>");
 }
 
+// Get total number of records
+$sqlCount = "SELECT COUNT(*) AS total_records FROM SalesLT.Product";
+$resultCount = sqlsrv_query($conn, $sqlCount);
+if (!$resultCount) {
+    die("<p style='color:red;'>Failed to fetch record count: " . print_r(sqlsrv_errors(), true) . "</p>");
+}
+$countRow = sqlsrv_fetch_array($resultCount, SQLSRV_FETCH_ASSOC);
+$totalRecords = $countRow['total_records'];
+
 // Seed test data if requested
 if (isset($_POST['seed'])) {
-    $numRecords = $_POST['numRecords'] ?? 10; // Default to 10 if no input
+    $numRecords = $_POST['numRecords'] ?? 10; // Default to 10 if not provided
     $standardCost = 10;
     $productCategoryID = 1;
     $productModelID = 1;
@@ -56,6 +65,8 @@ if (isset($_POST['create'])) {
     $productCategoryID = 1;
     $productModelID = 1;
 
+    echo "<p style='color:blue;'>Creating product...</p>";
+
     $sql = "INSERT INTO SalesLT.Product (Name, ProductNumber, StandardCost, ListPrice, ProductCategoryID, ProductModelID, SellStartDate) VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
     $params = [$name, $number, $standardCost, $price, $productCategoryID, $productModelID];
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -90,7 +101,7 @@ if (isset($_POST['delete'])) {
     echo "<p style='color:green;'>Product deleted.</p>";
 }
 
-// READ: Get latest 10 products
+// READ latest 10 products
 $sql = "SELECT TOP 10 ProductID, Name, ProductNumber, ListPrice FROM SalesLT.Product ORDER BY ProductID DESC";
 $result = sqlsrv_query($conn, $sql);
 if (!$result) {
@@ -153,18 +164,14 @@ if (!$result) {
         }
         #loadingMessage {
             display: none;
-            color: green;
-            font-size: 1.2em;
-            margin-top: 20px;
-        }
-        .hidden {
-            display: none;
+            color: blue;
+            font-weight: bold;
+            margin-left: 10px;
         }
     </style>
     <script>
         function showLoadingMessage() {
-            document.getElementById("loadingMessage").style.display = "block";
-            document.getElementById("createForm").classList.add("hidden");
+            document.getElementById("loadingMessage").style.display = "inline";
         }
     </script>
 </head>
@@ -172,15 +179,15 @@ if (!$result) {
 
 <h1>🌟 NTMS database PoC Product Management Portal</h1>
 
-<h2>Seed Test Data</h2>
-<form method="post" onsubmit="showLoadingMessage()">
-    <label for="numRecords">Number of Records to Seed: </label>
-    <input type="number" name="numRecords" min="1" required>
-    <button type="submit" name="seed">Seed Products</button>
+<h2>Seed Test Data (Total Records: <?= $totalRecords ?>)</h2>
+<form method="post" onsubmit="showLoadingMessage();">
+    Number of Records: <input type="number" name="numRecords" min="1" required>
+    <button type="submit" name="seed">Seed Records</button>
+    <span id="loadingMessage">Creating...</span>
 </form>
 
 <h2>Create Product</h2>
-<form method="post" id="createForm" onsubmit="showLoadingMessage()">
+<form method="post">
     Name: <input type="text" name="name" required>
     Number: <input type="text" name="number" required>
     Price: <input type="number" step="0.01" name="price" required>
@@ -212,9 +219,6 @@ if (!$result) {
         </tr>
     <?php } ?>
 </table>
-
-<!-- Loading message to show during creation -->
-<div id="loadingMessage">Creating... Please wait while the records are being inserted.</div>
 
 </body>
 </html>
