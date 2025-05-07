@@ -2,7 +2,7 @@
 // db.php (Database Connection)
 
 function getConnection() {
-    $serverName = "ntmssql11.database.windows.net"; // Replace with your SQL Server instance name or address
+    $serverName = "ntmsdb11.database.windows.net"; // Replace with your SQL Server instance name or address
     $databaseName = "db1"; // Replace with your database name
     $username = "sqladmin"; // Replace with your SQL Server username
     $password = "123#ntms123#"; // Replace with your SQL Server password
