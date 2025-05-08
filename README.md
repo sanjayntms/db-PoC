@@ -14,5 +14,5 @@ Name	Value
 # In database,
 * CREATE USER appuser WITH PASSWORD = 'your password';
 * GRANT SELECT, INSERT, DELETE TO appuser;
-* For data masking, DROP VIEW SalesLT.vProductAndDescription;
-  and then try to list 
+*  For data masking, DROP VIEW SalesLT.vProductAndDescription;
+   and then reload web page, in name column , value should be masked and viewed as xxxx
