@@ -11,3 +11,6 @@ Name	Value
 
 # 
 ## Modify Seed if you want to insert huge data for testing purpose like DTU,vcore perf
+# In database,
+* CREATE USER appuser WITH PASSWORD = 'your password';
+* GRANT SELECT, INSERT, DELETE TO appuser;
