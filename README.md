@@ -14,3 +14,5 @@ Name	Value
 # In database,
 * CREATE USER appuser WITH PASSWORD = 'your password';
 * GRANT SELECT, INSERT, DELETE TO appuser;
+* For data masking, DROP VIEW SalesLT.vProductAndDescription;
+  and then try to list 
