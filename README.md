@@ -16,7 +16,7 @@ Name	Value
   },
   {
     "name": "DB_PASSWORD",
-    "value": "123#ntms123#",
+    "value": "password",
     "slotSetting": false
   },
   {
