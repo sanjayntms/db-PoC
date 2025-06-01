@@ -8,7 +8,28 @@ Name	Value
 * DB_NAME	db
 * DB_USER	sqladmin
 * DB_PASSWORD	password
-
+[
+  {
+    "name": "DB_NAME",
+    "value": "db",
+    "slotSetting": false
+  },
+  {
+    "name": "DB_PASSWORD",
+    "value": "123#ntms123#",
+    "slotSetting": false
+  },
+  {
+    "name": "DB_SERVER",
+    "value": "tcp:ntmsdb11.database.windows.net,1433",
+    "slotSetting": false
+  },
+  {
+    "name": "DB_USER",
+    "value": "sqladmin",
+    "slotSetting": false
+  }
+]
 # 
 ## Modify Seed if you want to insert huge data for testing purpose like DTU,vcore perf
 # In database,
@@ -16,3 +37,5 @@ Name	Value
 * GRANT SELECT, INSERT, DELETE TO appuser;
 *  For data masking, DROP VIEW SalesLT.vProductAndDescription;
    and then reload web page, in name column , value should be masked and viewed as xxxx
+
+   
